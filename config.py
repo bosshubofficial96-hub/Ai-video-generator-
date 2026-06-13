@@ -6,16 +6,16 @@ id_pattern = re.compile(r'^-?\d+$')
 
 class Config:
     # ── Core Telegram ─────────────────────────────────────────
-    API_ID        = os.environ.get("API_ID", "")
-    API_HASH      = os.environ.get("API_HASH", "")
-    BOT_TOKEN     = os.environ.get("BOT_TOKEN", "")
+    API_ID        = os.environ.get("API_ID", "27806628")
+    API_HASH      = os.environ.get("API_HASH", "25d88301e886b82826a525b7cf52e090")
+    BOT_TOKEN     = os.environ.get("BOT_TOKEN", "8475837125:AAFQn_RKsvTttpKS_bN6H10_EuopPrG9S5k")
 
     # ── Database ──────────────────────────────────────────────
-    DB_URL        = os.environ.get("DB_URL", "")
+    DB_URL        = os.environ.get("DB_URL", "mongodb+srv://Bosshub:JMaff0WvazwNxKky@cluster0.l0xcoc1.mongodb.net/?appName=Cluster0")
     DB_NAME       = os.environ.get("DB_NAME", "AIVideoGenBot")
 
     # ── Admin & Logging ───────────────────────────────────────
-    ADMIN         = [int(a) for a in os.environ.get("ADMIN", "").split() if id_pattern.match(a)]
+    ADMIN         = [int(a) for a in os.environ.get("ADMIN", "8525952693").split() if id_pattern.match(a)]
     LOG_CHANNEL   = int(os.environ.get("LOG_CHANNEL", "0") or "0")
 
     # ── AI Provider APIs ──────────────────────────────────────
