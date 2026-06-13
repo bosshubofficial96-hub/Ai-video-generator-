@@ -19,7 +19,7 @@ class Config:
     LOG_CHANNEL   = int(os.environ.get("LOG_CHANNEL", "0") or "0")
 
     # ── AI Provider APIs ──────────────────────────────────────
-    REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
+    REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "key_0085d1b57a4120051c822e00f70461f3e639b9c742757117b7463c5e1e73e5bc21feed5e5a4eae2521f67480567b9cc031f13f47d279e9c64ccca4b87bd132e3")
     LUMA_API_KEY        = os.environ.get("LUMA_API_KEY", "")
     FAL_API_KEY         = os.environ.get("FAL_API_KEY", "")
     STABILITY_API_KEY   = os.environ.get("STABILITY_API_KEY", "")
