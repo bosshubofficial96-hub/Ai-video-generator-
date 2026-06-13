@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BossHuBots AI Video Bot — Dashboard</title>
+<style>
+  :root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3e;--accent:#6c63ff;--accent2:#ff6584;--green:#43d787;--red:#ff5c5c;--yellow:#ffc857;--text:#e2e8f0;--muted:#64748b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+  header{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:20px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 24px rgba(108,99,255,.3)}
+  header h1{font-size:1.5rem;font-weight:700}header p{font-size:.85rem;opacity:.85}
+  .status-dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  main{padding:28px 32px;max-width:1400px;margin:0 auto}
+  h2{font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;transition:transform .15s}
+  .card:hover{transform:translateY(-2px)}
+  .card .val{font-size:2rem;font-weight:700;line-height:1.1}
+  .card .lbl{font-size:.8rem;color:var(--muted);margin-top:6px}
+  .card .icon{font-size:1.5rem;margin-bottom:8px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
+  .badge.green{background:rgba(67,215,135,.15);color:var(--green)}
+  .badge.red{background:rgba(255,92,92,.15);color:var(--red)}
+  .badge.yellow{background:rgba(255,200,87,.15);color:var(--yellow)}
+  .badge.purple{background:rgba(108,99,255,.15);color:var(--accent)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+  th{text-align:left;padding:12px 16px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.03)}
+  td{padding:11px 16px;border-top:1px solid var(--border);font-size:.875rem}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .progress{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .5s}
+  .section{margin-bottom:36px}
+  .row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .btn{background:var(--accent);color:#fff;border:none;padding:7px 18px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;transition:opacity .15s}
+  .btn:hover{opacity:.85} .btn.secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+  .auth-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:28px;display:flex;gap:12px;align-items:flex-end}
+  input{background:#0f1117;border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:.875rem;outline:none;flex:1}
+  input:focus{border-color:var(--accent)}
+  .model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .model-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .model-card .name{font-weight:600;margin-bottom:4px}
+  .model-card .desc{font-size:.8rem;color:var(--muted)}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);padding:12px 20px;border-radius:10px;font-size:.875rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(80px);transition:transform .3s;z-index:999}
+  .toast.show{transform:translateY(0)} .toast.success{border-color:var(--green)} .toast.error{border-color:var(--red)}
+  .tag{display:inline-block;background:rgba(108,99,255,.12);color:var(--accent);padding:2px 8px;border-radius:6px;font-size:.75rem;margin:2px}
+  #loading{text-align:center;padding:60px;color:var(--muted)}
+  .chart-bar{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:.8rem}
+  .chart-bar .bar{height:20px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));min-width:4px;transition:width .5s}
+  .chart-bar .count{color:var(--muted);white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="status-dot"></div>
+  <div>
+    <h1>🎬 BossHuBots AI Video Generator</h1>
+    <p>Admin Dashboard · v<span id="version">—</span></p>
+  </div>
+  <div style="margin-left:auto;text-align:right">
+    <div id="uptime" style="font-size:.9rem;font-weight:600"></div>
+    <div style="font-size:.75rem;opacity:.75">Uptime</div>
+  </div>
+</header>
+
+<main>
+  <div class="auth-box">
+    <div style="flex:1">
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px">API Token (Bearer)</div>
+      <input type="password" id="apiToken" placeholder="Enter your API token…" />
+    </div>
+    <button class="btn" onclick="loadAll()">🔄 Load Data</button>
+    <button class="btn secondary" onclick="clearToken()">✕</button>
+  </div>
+
+  <div id="loading">Enter your API token above and click Load Data</div>
+
+  <div id="dashboard" style="display:none">
+
+    <!-- Stats -->
+    <div class="section">
+      <h2>📊 Overview</h2>
+      <div class="grid">
+        <div class="card"><div class="icon">👥</div><div class="val" id="stat-users">—</div><div class="lbl">Total Users</div></div>
+        <div class="card"><div class="icon">💎</div><div class="val" id="stat-premium">—</div><div class="lbl">Premium Users</div></div>
+        <div class="card"><div class="icon">🎬</div><div class="val" id="stat-gens">—</div><div class="lbl">Total Videos</div></div>
+        <div class="card"><div class="icon">📅</div><div class="val" id="stat-today">—</div><div class="lbl">Videos Today</div></div>
+        <div class="card"><div class="icon">✅</div><div class="val" id="stat-rate">—</div><div class="lbl">Success Rate</div></div>
+        <div class="card"><div class="icon">⏱</div><div class="val" id="stat-wait">—</div><div class="lbl">Avg Wait (s)</div></div>
+        <div class="card"><div class="icon">📋</div><div class="val" id="stat-queue">—</div><div class="lbl">Queue Pending</div></div>
+        <div class="card"><div class="icon">♻️</div><div class="val" id="stat-cache">—</div><div class="lbl">Cache Entries</div></div>
+      </div>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="section">
+      <div class="row-header">
+        <h2>🔧 Maintenance</h2>
+        <span id="maint-badge"></span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <input type="text" id="maint-msg" placeholder="Maintenance message…" style="max-width:400px"/>
+        <button class="btn" onclick="setMaintenance(true)">🔴 Turn ON</button>
+        <button class="btn secondary" onclick="setMaintenance(false)">🟢 Turn OFF</button>
+      </div>
+    </div>
+
+    <!-- Models -->
+    <div class="section">
+      <h2>🤖 AI Models</h2>
+      <div class="model-grid" id="models-list"></div>
+    </div>
+
+    <!-- Recent Generations -->
+    <div class="section">
+      <div class="row-header">
+        <h2>🎬 Recent Generations</h2>
+        <button class="btn secondary" onclick="loadGenerations()">🔄 Refresh</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>User</th><th>Prompt</th><th>Model</th><th>Provider</th><th>Resolution</th><th>Duration</th><th>Retries</th><th>Date</th>
+        </tr></thead>
+        <tbody id="gen-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="section">
+      <div class="row-header">
+        <h2>👥 Recent Users</h2>
+        <button class="btn secondary" onclick="loadUsers()">🔄 Refresh</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>ID</th><th>Total Gens</th><th>Today</th><th>Remaining</th><th>Plan</th><th>Status</th>
+        </tr></thead>
+        <tbody id="user-table"></tbody>
+      </table>
+    </div>
+
+    <!-- Queue -->
+    <div class="section">
+      <h2>📋 Queue & Engine</h2>
+      <div class="grid" id="queue-info"></div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let TOKEN = localStorage.getItem('bosshubots_token') || '';
+
+function getToken(){ return document.getElementById('apiToken').value || TOKEN; }
+function clearToken(){ document.getElementById('apiToken').value=''; localStorage.removeItem('bosshubots_token'); }
+
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(()=>t.className='toast',3000);
+}
+
+async function apiFetch(path, method='GET', body=null){
+  const tok = getToken();
+  const opts = {
+    method,
+    headers:{'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'}
+  };
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(API+path, opts);
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+async function loadAll(){
+  const tok = getToken();
+  if(!tok){ toast('Enter API token first','error'); return; }
+  localStorage.setItem('bosshubots_token', tok);
+  document.getElementById('loading').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  await Promise.all([loadStats(), loadModels(), loadGenerations(), loadUsers(), loadQueue()]);
+}
+
+async function loadStats(){
+  try{
+    const d = await apiFetch('/api/stats');
+    document.getElementById('stat-users').textContent   = d.users.total;
+    document.getElementById('stat-premium').textContent = d.users.premium;
+    document.getElementById('stat-gens').textContent    = d.generations.total;
+    document.getElementById('stat-today').textContent   = d.generations.today;
+    document.getElementById('stat-rate').textContent    = d.generations.success_rate+'%';
+    document.getElementById('stat-wait').textContent    = Math.round(d.queue.avg_wait_secs);
+    document.getElementById('stat-queue').textContent   = d.queue.pending;
+    document.getElementById('stat-cache').textContent   = d.cache.entries;
+    document.getElementById('uptime').textContent       = d.uptime;
+    const mb = document.getElementById('maint-badge');
+    mb.innerHTML = d.maintenance.enabled
+      ? '<span class="badge red">🔴 ON</span>'
+      : '<span class="badge green">🟢 OFF</span>';
+    if(d.maintenance.message) document.getElementById('maint-msg').value = d.maintenance.message;
+    const h = await apiFetch('/api/health');
+    document.getElementById('version').textContent = h.version;
+  } catch(e){ toast('Failed to load stats: '+e.message,'error'); }
+}
+
+async function loadModels(){
+  try{
+    const models = await apiFetch('/api/models');
+    const el = document.getElementById('models-list');
+    el.innerHTML = models.map(m=>`
+      <div class="model-card">
+        <div class="name">${m.name} <span class="badge ${m.free?'green':'yellow'}">${m.free?'Free':'Premium'}</span></div>
+        <div class="desc">${m.description}</div>
+        <div style="margin-top:8px">
+          ${m.resolutions.map(r=>`<span class="tag">${r}</span>`).join('')}
+          ${m.durations.map(d=>`<span class="tag">${d}s</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch(e){ console.error(e); }
+}
+
+async function loadGenerations(){
+  try{
+    const gens = await apiFetch('/api/generations?limit=20');
+    const tb = document.getElementById('gen-table');
+    if(!gens.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No generations yet</td></tr>'; return; }
+    tb.innerHTML = gens.map(g=>`
+      <tr>
+        <td><code>${g.user_id}</code></td>
+        <td title="${g.prompt}">${g.prompt.slice(0,40)}${g.prompt.length>40?'…':''}</td>
+        <td>${g.model}</td>
+        <td><span class="badge purple">${g.provider||'?'}</span></td>
+        <td>${g.resolution||'—'}</td>
+        <td>${g.duration||0}s</td>
+        <td>${g.retry_count||0}</td>
+        <td>${g.created_at.slice(0,16)}</td>
+      </tr>
+    `).join('');
+  } catch(e){ console.error(e); }
+}
+
+async function loadUsers(){
+  try{
+    const users = await apiFetch('/api/users?limit=20');
+    const tb = document.getElementById('user-table');
+    if(!users.length){ tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No users</td></tr>'; return; }
+    tb.innerHTML = users.map(u=>`
+      <tr>
+        <td><code>${u.id}</code></td>
+        <td>${u.total_gens}</td>
+        <td>${u.daily_gens}</td>
+        <td>${u.remaining}</td>
+        <td>${u.is_premium ? '<span class="badge yellow">💎 Premium</span>' : '<span class="badge green">🆓 Free</span>'}</td>
+        <td>${u.is_banned ? '<span class="badge red">🚫 Banned</span>' : '<span class="badge green">✅ Active</span>'}</td>
+      </tr>
+    `).join('');
+  } catch(e){ console.error(e); }
+}
+
+async function loadQueue(){
+  try{
+    const q = await apiFetch('/api/queue');
+    document.getElementById('queue-info').innerHTML = `
+      <div class="card"><div class="icon">📋</div><div class="val">${q.pending}</div><div class="lbl">Pending Jobs</div></div>
+      <div class="card"><div class="icon">${q.worker_running?'🟢':'🔴'}</div><div class="val">${q.worker_running?'Running':'Idle'}</div><div class="lbl">Worker Status</div></div>
+      <div class="card"><div class="icon">⏱</div><div class="val">${Math.round(q.avg_wait_secs)}s</div><div class="lbl">Avg Wait</div></div>
+      <div class="card"><div class="icon">🔄</div><div class="val">${q.max_retries}</div><div class="lbl">Max Retries</div></div>
+      <div class="card"><div class="icon">⏰</div><div class="val">${q.timeout_secs}s</div><div class="lbl">Timeout</div></div>
+    `;
+  } catch(e){ console.error(e); }
+}
+
+async function setMaintenance(enabled){
+  try{
+    const msg = document.getElementById('maint-msg').value;
+    await apiFetch('/api/maintenance','POST',{enabled, message: msg});
+    toast(`Maintenance ${enabled?'ON':'OFF'} ✅`);
+    await loadStats();
+  } catch(e){ toast('Failed: '+e.message,'error'); }
+}
+
+// Auto-refresh every 30s if token is present
+setInterval(()=>{ if(document.getElementById('dashboard').style.display!=='none') loadStats(); }, 30000);
+
+// Load token from storage on startup
+if(TOKEN){ document.getElementById('apiToken').value = TOKEN; }
+</script>
+</body>
+</html>
